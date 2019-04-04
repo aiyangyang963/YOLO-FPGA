@@ -284,26 +284,256 @@ void copy_input2buf_row(short input_buffer[Tn][OnChipIB_Height][OnChipIB_Width],
 void input_load(int *input,int *input1,int *input2,int *input3,
 				short input_buffer[Tn][OnChipIB_Height][OnChipIB_Width],int r,int c,int n,int Kernel_stride,int Padding,UCHAR TRow,UCHAR TCol,int Input_w,int Input_h,int TN_MIN,int IHxIW,int LayerType,ap_uint<6> trow_loops)
 {
-	
+	static int input_memcpy_buffer0[(OnChipIB_Width+3)/2];
+	static int input_memcpy_buffer1[(OnChipIB_Width+3)/2];
+	static int input_memcpy_buffer2[(OnChipIB_Width+3)/2];
+	static int input_memcpy_buffer3[(OnChipIB_Width+3)/2];
+	ap_uint<1> RowBeginByte[Tn];
+#pragma HLS ARRAY_PARTITION variable=RowBeginByte complete dim=1//0 ro 1
+
+	static int input_memcpy_buffer02[(OnChipIB_Width+3)/2];
+	static int input_memcpy_buffer12[(OnChipIB_Width+3)/2];
+	static int input_memcpy_buffer22[(OnChipIB_Width+3)/2];
+	static int input_memcpy_buffer32[(OnChipIB_Width+3)/2];
+	ap_uint<1> RowBeginByte2[Tn];//0 ro 1
+#pragma HLS ARRAY_PARTITION variable=RowBeginByte2 complete dim=1//0 ro 1
+
+	ap_uint<1> RowSub,ColSub;
+
+	ap_uint<6> t2;
+
+	ap_uint<9> r_9b = r;
+//	assert(r < 512);
+	ap_uint<9> c_9b = c;
+//	assert(c < 512);
+//	assert(n < 2048);
+	ap_uint<11> n_11b = n;
+//	assert(Kernel_stride < 4);
+	ap_uint<2> Kernel_stride_2b = Kernel_stride;
+//	assert(Padding < 2);
+	ap_uint<1> Padding_1b = Padding;
+//	assert(Input_w < 512);
+	ap_uint<9> Input_w_9b = Input_w;
+	ap_uint<10> Input_h_10b = Input_h;
+//	assert(Input_h < 1024);
+//	assert(TN_MIN < 8);//xx8
+	ap_uint<3> TN_MIN_3b = TN_MIN;
+	ap_uint<18> IHxIW_18b = IHxIW;
+//	assert(IHxIW < 512*512);
+
+	ap_int<12> Coffset = c_9b*Kernel_stride_2b - Padding_1b;
+	ap_int<12> Roffset = r_9b*Kernel_stride_2b - Padding_1b;
+
+	ap_uint<12> TCol_right,TRow_bottom;
+	ap_uint<10> TRow_top,TCol_left;
+	ap_uint<6> row_len,col_len;
+
+	if(Coffset > 0)
+		TCol_left = Coffset;
+	else
+		TCol_left = 0;
+
+	if((Coffset + TCol-1)<Input_w_9b)
+		TCol_right = Coffset + TCol;
+	else
+		TCol_right = Input_w_9b;
+
+	col_len = TCol_right - TCol_left;
+
+	if(Roffset > 0)
+		TRow_top = Roffset;
+	else
+		TRow_top = 0;
+
+	if((Roffset + TRow-1)<Input_h_10b)
+		TRow_bottom = Roffset + TRow;
+	else
+		TRow_bottom = Input_h_10b;
+
+	row_len = TRow_bottom - TRow_top;
+
+	int IN_OFFSET = n_11b*IHxIW_18b + TRow_top*Input_w_9b +TCol_left;
+
+	ap_uint<9> RowIncreaseLength;
+	ap_uint<6> ColIncreaseLength;
+	ap_uint<3> T2Rate;
+	switch(Input_w_9b)
+	{
+		case 26:
+			RowIncreaseLength = 2*26;
+			ColIncreaseLength = 2*26;
+			T2Rate = 2;
+			break;
+		case 13:
+			RowIncreaseLength = 4*13;
+			ColIncreaseLength = 4*13;
+			T2Rate = 4;
+			break;
+		default:
+			RowIncreaseLength = Input_w_9b;
+			ColIncreaseLength = col_len;
+			T2Rate = 1;
+			break;
+	}
+
+	//assert(ColNum < 64*64);
+	//assert(RowNum < 64);
+	RowSub = TRow_top - Roffset;
+	ColSub = TCol_left - Coffset;
+
+	bool pingpong = 1;
+	ap_uint<6> next_t2[1];
+	bool next_IsRowPixel[1];
+	ap_uint<6> next_t22[1];
+	bool next_IsRowPixel2[1];
+
+//	ap_uint<6> trow_loops = (int)ceil(((float)TRow/T2Rate));
+	ap_uint<6> TMP_t2;
+	for(TMP_t2 = 0,t2 = 0;TMP_t2 < trow_loops + 1; t2 += T2Rate,TMP_t2++)
+	{
+		bool IsRowPixel = (t2 >= RowSub)&&(t2 < (row_len + RowSub));
+
+		if(pingpong == 1)
+		{
+			mmcpy_inputpixel_m2b_comb(input,input1,input2,input3,
+							   input_memcpy_buffer0, input_memcpy_buffer1,
+							   input_memcpy_buffer2, input_memcpy_buffer3,
+							   RowBeginByte, TN_MIN_3b, t2, RowSub, IN_OFFSET, RowIncreaseLength, IHxIW_18b, ColIncreaseLength, next_t2,next_IsRowPixel,IsRowPixel,TMP_t2!=trow_loops);
+
+			copy_input2buf_row( input_buffer, row_len, col_len, RowSub, ColSub,
+						 input_memcpy_buffer02, input_memcpy_buffer12,input_memcpy_buffer22, input_memcpy_buffer32,
+						RowBeginByte2, TRow, TCol,LayerType,next_t22,next_IsRowPixel2,TMP_t2!=0,T2Rate);
+			pingpong = 0;
+		}else
+		{
+			mmcpy_inputpixel_m2b_comb(input,input1,input2,input3,
+							   input_memcpy_buffer02, input_memcpy_buffer12,
+							   input_memcpy_buffer22, input_memcpy_buffer32,
+							   RowBeginByte2, TN_MIN_3b, t2, RowSub, IN_OFFSET, RowIncreaseLength, IHxIW_18b, ColIncreaseLength, next_t22,next_IsRowPixel2,IsRowPixel,TMP_t2!=trow_loops);
+
+			copy_input2buf_row( input_buffer, row_len, col_len, RowSub, ColSub,
+						 input_memcpy_buffer0, input_memcpy_buffer1,input_memcpy_buffer2, input_memcpy_buffer3,
+						RowBeginByte, TRow, TCol,LayerType,next_t2,next_IsRowPixel,TMP_t2!=0,T2Rate);
+			pingpong = 1;
+		}
+	}
+
+//	assert(TRow_top < 1024);
+//	assert(TCol_left < 1024);
 
 }
 
 void weight_mmcpy_everyKxK(int *Weight,int weight_memcpy_buffer[Tm*Tn/2],ap_uint<3> t3,ap_uint<3> t4,ap_uint<3> next_t3[1],ap_uint<3> next_t4[1],unsigned int ReadLength,bool init_enable,bool enable)
 {
-	
+	if(!enable)
+		return;
+
+	static int Woffset;
+	next_t3[0] = t3;
+	next_t4[0] = t4;
+
+	if(init_enable)
+	{
+		Woffset = 0;
+	}
+
+	memcpy(weight_memcpy_buffer,(int *)(Weight + Woffset),ReadLength*sizeof(int));
+	Woffset += ReadLength;
 }
 
 void load_weight2buf_everyKxK(int weight_memcpy_buffer[Tm*Tn/2],short weight_buffer[Tm][Tn][K][K],ap_uint<3> t3,ap_uint<3> t4,ap_uint<6> TM_MIN,ap_uint<3> TN_MIN,bool enable)
 {
 
-	
+	if(!enable)
+		return;
+
+	ap_uint<6> t1;
+	ap_uint<3> t2;
+	ap_uint<8> weight_memcpy_offset = 0;
+	ap_uint<2> cnt = 0;
+	short input_array[2];
+#pragma HLS ARRAY_PARTITION variable=input_array complete dim=1
+	short input_value;
+
+	for(t1 = 0;t1 < Tm; t1++)
+		for(t2 = 0;t2 < Tn; t2++)
+		{
+#pragma HLS PIPELINE
+			bool Enable = (t1 < TM_MIN)&&(t2 < TN_MIN);
+			if(Enable)
+			{
+				if(cnt==0)
+				{
+					input_array[0] = weight_memcpy_buffer[weight_memcpy_offset];
+					input_array[1] = weight_memcpy_buffer[weight_memcpy_offset] >> 16;
+					weight_memcpy_offset++;
+				}
+				input_value = input_array[cnt];
+
+				cnt++;
+				if(cnt==2)
+					cnt = 0;
+			}
+			else
+				input_value = 0;
+
+			weight_buffer[t1][t2][t3][t4] =  input_value;
+		}
 }
 
 void weight_load_reorg(int *Weight,short weight_buffer[Tm][Tn][K][K],bool weight_load_enable,int m,int n,int IFM_numxKxK,int KxK,int Kernel_size,int TM_MIN,int TN_MIN)
 {
-	
-}
+	/*int t1,t2,t3,t4;*/
+	static int weight_memcpy_buffer[Tm*Tn/2];
+	static int weight_memcpy_buffer1[Tm*Tn/2];
 
+	if(!weight_load_enable)
+		return;
+
+//	assert(m < 1024);
+//	assert(n < 2048);//gg2048
+//	assert(IFM_numxKxK < 1024*16);
+//	assert(Kernel_size < 4);
+//	assert(TM_MIN < 64);
+//	assert(TN_MIN < 8);//xx8
+
+	ap_uint<2> Kernel_size_2b = Kernel_size;
+	ap_uint<6> TM_MIN_6b = TM_MIN;
+	ap_uint<3> TN_MIN_3b = TN_MIN;
+
+	ap_uint<10> m_10b = m;
+	ap_uint<11> n_11b = n;
+
+	bool Me0aNe0 = (m_10b==0)&&(n_11b==0);
+	unsigned int ReadLength = (TM_MIN_6b*TN_MIN_3b)>>1;
+
+//	if((TM_MIN*TN_MIN)%2)
+//		printf("weight % error\n");
+
+	ap_uint<3> t3,t4;
+	ap_uint<3> next_t3[1];
+	ap_uint<3> next_t4[1];
+	ap_uint<3> next_t31[1];
+	ap_uint<3> next_t41[1];
+
+	bool pingpong = true;
+
+	for(t3 = 0;t3 < Kernel_size_2b;t3++)
+		for(t4 = 0;t4 < Kernel_size_2b + 1;t4++)
+		{
+			if(pingpong)
+			{
+				weight_mmcpy_everyKxK(Weight, weight_memcpy_buffer, t3, t4,next_t3,next_t4, ReadLength,Me0aNe0&&(t3==0)&&(t4==0),t4!=Kernel_size_2b);
+				load_weight2buf_everyKxK(weight_memcpy_buffer1, weight_buffer, next_t31[0], next_t41[0], TM_MIN, TN_MIN,t4!=0);
+				pingpong = false;
+			}else
+			{
+				weight_mmcpy_everyKxK(Weight, weight_memcpy_buffer1, t3, t4,next_t31,next_t41, ReadLength,Me0aNe0&&(t3==0)&&(t4==0),t4!=Kernel_size_2b);
+				load_weight2buf_everyKxK(weight_memcpy_buffer, weight_buffer, next_t3[0], next_t4[0], TM_MIN, TN_MIN,t4!=0);
+				pingpong = true;
+			}
+		}
+}
 
 void copy_input_weight(int *input,int *input1,int *input2,int *input3,int *Weight,int InFM_num,int Input_w,int Input_h,int Kernel_size,int Kernel_stride,int r,int c,int m,int n,
 		int TM_MIN,int TN,UCHAR TRow,UCHAR TCol,int Padding,short input_buffer[Tn][OnChipIB_Height][OnChipIB_Width],short weight_buffer[Tm][Tn][K][K],int TMP_N_next[1],
