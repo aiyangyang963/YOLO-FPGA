@@ -1,0 +1,76 @@
+==============================================================
+File generated on Wed Apr 10 23:54:42 EDT 2019
+Vivado(TM) HLS - High-Level Synthesis from C, C++ and SystemC v2018.3 (64-bit)
+SW Build 2405991 on Thu Dec  6 23:36:41 MST 2018
+IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+==============================================================
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 10ns.
+INFO: [HLS 200-10] Setting target device to 'xc7z020clg400-1'
+INFO: [SCHED 204-61] Option 'relax_ii_for_timing' is enabled, will increase II to preserve clock frequency constraints.
+INFO: [HLS 200-10] Analyzing design file 'Lab_10_Conv2d/core.cpp' ... 
+INFO: [HLS 200-111] Finished Linking Time (s): cpu = 00:06:42 ; elapsed = 00:08:14 . Memory (MB): peak = 435.074 ; gain = 0.125 ; free physical = 1393 ; free virtual = 18686
+INFO: [HLS 200-111] Finished Checking Pragmas Time (s): cpu = 00:06:42 ; elapsed = 00:08:15 . Memory (MB): peak = 435.074 ; gain = 0.125 ; free physical = 1393 ; free virtual = 18686
+INFO: [HLS 200-10] Starting code transformations ...
+INFO: [XFORM 203-603] Inlining function 'hls::LineBuffer<3, 240, unsigned char, 0>::shift_pixels_up' into 'hls::LineBuffer<3, 240, unsigned char, 0>::shift_up' (/tools/Xilinx/Vivado/2018.3/common/technology/autopilot/hls/hls_video_mem.h:863).
+INFO: [XFORM 203-603] Inlining function 'hls::LineBuffer<3, 240, unsigned char, 0>::shift_up' into 'doImgProc' (Lab_10_Conv2d/core.cpp:42).
+INFO: [XFORM 203-603] Inlining function 'hls::LineBuffer<3, 240, unsigned char, 0>::insert_bottom_row' into 'hls::LineBuffer<3, 240, unsigned char, 0>::insert_top' (/tools/Xilinx/Vivado/2018.3/common/technology/autopilot/hls/hls_video_mem.h:883).
+INFO: [XFORM 203-603] Inlining function 'hls::LineBuffer<3, 240, unsigned char, 0>::insert_top' into 'doImgProc' (Lab_10_Conv2d/core.cpp:43).
+INFO: [XFORM 203-603] Inlining function 'hls::LineBuffer<3, 240, unsigned char, 0>::getval' into 'doImgProc' (Lab_10_Conv2d/core.cpp:51).
+INFO: [XFORM 203-603] Inlining function 'hls::Window<3, 3, short>::insert_pixel' into 'hls::Window<3, 3, short>::insert' (/tools/Xilinx/Vivado/2018.3/common/technology/autopilot/hls/hls_video_mem.h:573).
+INFO: [XFORM 203-603] Inlining function 'hls::Window<3, 3, short>::insert' into 'doImgProc' (Lab_10_Conv2d/core.cpp:55).
+INFO: [XFORM 203-603] Inlining function 'hls::Window<3, 3, short>::getval' into 'maxWindow' (Lab_10_Conv2d/core.cpp:183).
+INFO: [XFORM 203-603] Inlining function 'hls::Window<3, 3, short>::getval' into 'minWindow' (Lab_10_Conv2d/core.cpp:165).
+INFO: [XFORM 203-603] Inlining function 'hls::Window<3, 3, short>::getval' into 'sumWindow' (Lab_10_Conv2d/core.cpp:202).
+INFO: [HLS 200-111] Finished Standard Transforms Time (s): cpu = 00:06:50 ; elapsed = 00:08:23 . Memory (MB): peak = 564.809 ; gain = 129.859 ; free physical = 1351 ; free virtual = 18645
+INFO: [HLS 200-10] Checking synthesizability ...
+INFO: [XFORM 203-602] Inlining function 'sumWindow' into 'doImgProc' (Lab_10_Conv2d/core.cpp:67) automatically.
+INFO: [XFORM 203-602] Inlining function 'minWindow' into 'doImgProc' (Lab_10_Conv2d/core.cpp:77) automatically.
+INFO: [XFORM 203-602] Inlining function 'maxWindow' into 'doImgProc' (Lab_10_Conv2d/core.cpp:83) automatically.
+INFO: [HLS 200-111] Finished Checking Synthesizability Time (s): cpu = 00:06:52 ; elapsed = 00:08:25 . Memory (MB): peak = 626.949 ; gain = 192.000 ; free physical = 1314 ; free virtual = 18612
+INFO: [XFORM 203-502] Unrolling all loops for pipelining in function 'sumWindow' (Lab_10_Conv2d/core.cpp:193).
+INFO: [XFORM 203-502] Unrolling all loops for pipelining in function 'minWindow' (Lab_10_Conv2d/core.cpp:156).
+INFO: [XFORM 203-502] Unrolling all loops for pipelining in function 'maxWindow' (Lab_10_Conv2d/core.cpp:174).
+INFO: [XFORM 203-502] Unrolling all sub-loops inside loop 'Loop-1' (Lab_10_Conv2d/core.cpp:32) in function 'doImgProc' for pipelining.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1' (Lab_10_Conv2d/core.cpp:198) in function 'sumWindow' completely with a factor of 3.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1.1' (Lab_10_Conv2d/core.cpp:200) in function 'sumWindow' completely with a factor of 3.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1' (Lab_10_Conv2d/core.cpp:160) in function 'minWindow' completely with a factor of 3.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1.1' (Lab_10_Conv2d/core.cpp:162) in function 'minWindow' completely with a factor of 3.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1' (Lab_10_Conv2d/core.cpp:178) in function 'maxWindow' completely with a factor of 3.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1.1' (Lab_10_Conv2d/core.cpp:180) in function 'maxWindow' completely with a factor of 3.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1.1' (/tools/Xilinx/Vivado/2018.3/common/technology/autopilot/hls/hls_video_mem.h:727) in function 'doImgProc' completely with a factor of 2.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1.2' (Lab_10_Conv2d/core.cpp:46) in function 'doImgProc' completely with a factor of 3.
+INFO: [HLS 200-489] Unrolling loop 'Loop-1.2.1' (Lab_10_Conv2d/core.cpp:48) in function 'doImgProc' completely with a factor of 3.
+INFO: [XFORM 203-101] Partitioning array 'lineBuff.val' (Lab_10_Conv2d/core.cpp:15) in dimension 1 completely.
+INFO: [XFORM 203-101] Partitioning array 'window.val' (Lab_10_Conv2d/core.cpp:16) in dimension 1 completely.
+INFO: [XFORM 203-101] Partitioning array 'window.val' (Lab_10_Conv2d/core.cpp:16) in dimension 2 completely.
+INFO: [XFORM 203-602] Inlining function 'sumWindow' into 'doImgProc' (Lab_10_Conv2d/core.cpp:67) automatically.
+INFO: [XFORM 203-602] Inlining function 'minWindow' into 'doImgProc' (Lab_10_Conv2d/core.cpp:77) automatically.
+INFO: [XFORM 203-602] Inlining function 'maxWindow' into 'doImgProc' (Lab_10_Conv2d/core.cpp:83) automatically.
+INFO: [XFORM 203-401] Performing if-conversion on hyperblock from (Lab_10_Conv2d/core.cpp:33:3) to (Lab_10_Conv2d/core.cpp:122:3) in function 'doImgProc'... converting 6 basic blocks.
+INFO: [XFORM 203-11] Balancing expressions in function 'doImgProc' (Lab_10_Conv2d/core.cpp:6)...15 expression(s) balanced.
+INFO: [HLS 200-111] Finished Pre-synthesis Time (s): cpu = 00:06:56 ; elapsed = 00:08:30 . Memory (MB): peak = 628.793 ; gain = 193.844 ; free physical = 1254 ; free virtual = 18559
+WARNING: [ANALYSIS 214-52] Found false inter dependency for variable 'lineBuff.val[0]' (Lab_10_Conv2d/core.cpp:15).
+WARNING: [ANALYSIS 214-52] Found false inter dependency for variable 'lineBuff.val[1]' (Lab_10_Conv2d/core.cpp:15).
+WARNING: [ANALYSIS 214-52] Found false inter dependency for variable 'lineBuff.val[2]' (Lab_10_Conv2d/core.cpp:15).
+WARNING: [ANALYSIS 214-52] Found false intra dependency for variable 'lineBuff.val[0]' (Lab_10_Conv2d/core.cpp:15).
+WARNING: [ANALYSIS 214-52] Found false intra dependency for variable 'lineBuff.val[1]' (Lab_10_Conv2d/core.cpp:15).
+WARNING: [ANALYSIS 214-52] Found false intra dependency for variable 'lineBuff.val[2]' (Lab_10_Conv2d/core.cpp:15).
+INFO: [HLS 200-111] Finished Architecture Synthesis Time (s): cpu = 00:06:59 ; elapsed = 00:08:33 . Memory (MB): peak = 628.793 ; gain = 193.844 ; free physical = 1239 ; free virtual = 18545
+INFO: [HLS 200-10] Starting hardware synthesis ...
+INFO: [HLS 200-10] Synthesizing 'doImgProc' ...
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'doImgProc' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining loop 'Loop 1'.
+WARNING: [SCHED 204-68] The II Violation in module 'doImgProc': Unable to enforce a carried dependence constraint (II = 1, distance = 1, offset = 1)
+   between 'load' operation ('lineBuff_val_0_load', Lab_10_Conv2d/core.cpp:51) on array 'lineBuff.val[0]', Lab_10_Conv2d/core.cpp:15 and 'store' operation (/tools/Xilinx/Vivado/2018.3/common/technology/autopilot/hls/hls_video_mem.h:729->/tools/Xilinx/Vivado/2018.3/common/technology/autopilot/hls/hls_video_mem.h:863->Lab_10_Conv2d/core.cpp:42) of variable 'lineBuff_val_1_load', /tools/Xilinx/Vivado/2018.3/common/technology/autopilot/hls/hls_video_mem.h:729->/tools/Xilinx/Vivado/2018.3/common/technology/autopilot/hls/hls_video_mem.h:863->Lab_10_Conv2d/core.cpp:42 on array 'lineBuff.val[0]', Lab_10_Conv2d/core.cpp:15.
+WARNING: [SCHED 204-69] Unable to schedule 'load' operation ('kernel_load_2', Lab_10_Conv2d/core.cpp:54) on array 'kernel' due to limited memory ports. Please consider using a memory core with more ports or partitioning the array 'kernel'.
+==============================================================
+File generated on Thu Apr 11 00:07:23 EDT 2019
+Vivado(TM) HLS - High-Level Synthesis from C, C++ and SystemC v2018.3 (64-bit)
+SW Build 2405991 on Thu Dec  6 23:36:41 MST 2018
+IP Build 2404404 on Fri Dec  7 01:43:56 MST 2018
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+==============================================================
